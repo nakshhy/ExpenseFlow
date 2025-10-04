@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExpenseFlow - Track Your Spending</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💰 ExpenseFlow</h1>
+            <p>Smart expense tracking made simple</p>
+        </header>
+
+        <div class="dashboard">
+            <div class="stat-card income">
+                <h3>Total Income</h3>
+                <div class="amount" id="totalIncome">$0.00</div>
+            </div>
+            <div class="stat-card expense">
+                <h3>Total Expenses</h3>
+                <div class="amount" id="totalExpense">$0.00</div>
+            </div>
+            <div class="stat-card balance">
+                <h3>Current Balance</h3>
+                <div class="amount" id="currentBalance">$0.00</div>
+            </div>
+            <div class="stat-card">
+                <h3>This Month</h3>
+                <div class="amount" id="monthlyExpense">$0.00</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>Add Transaction</h2>
+                <form id="transactionForm">
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select id="transactionType" required>
+                            <option value="expense">Expense</option>
+                            <option value="income">Income</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" id="description" placeholder="What did you spend on?" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount</label>
+                        <input type="number" id="amount" placeholder="0.00" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="category" required>
+                            <option value="food">🍔 Food & Dining</option>
+                            <option value="transport">🚗 Transportation</option>
+                            <option value="shopping">🛍️ Shopping</option>
+                            <option value="entertainment">🎮 Entertainment</option>
+                            <option value="bills">📄 Bills & Utilities</option>
+                            <option value="health">💊 Healthcare</option>
+                            <option value="education">📚 Education</option>
+                            <option value="salary">💼 Salary</option>
+                            <option value="business">💼 Business Income</option>
+                            <option value="freelance">💻 Freelance</option>
+                            <option value="investment">📈 Investment Returns</option>
+                            <option value="rental">🏠 Rental Income</option>
+                            <option value="gift">🎁 Gift Received</option>
+                            <option value="refund">↩️ Refund</option>
+                            <option value="other">📦 Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Notes (Optional)</label>
+                        <textarea id="notes" rows="3" placeholder="Add any additional details..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="recurring" style="width: auto; margin-right: 8px;">
+                            Recurring Transaction
+                        </label>
+                    </div>
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-primary">Add Transaction</button>
+                        <button type="button" class="btn btn-secondary" onclick="resetForm()">Clear</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('transactions')">Transactions</button>
+                    <button class="tab" onclick="switchTab('analytics')">Analytics</button>
+                    <button class="tab" onclick="switchTab('budget')">Budget</button>
+                </div>
+
+                <div id="transactionsTab">
+                    <div class="filters">
+                        <div class="filter-item">
+                            <select id="filterType" onchange="filterTransactions()">
+                                <option value="all">All Types</option>
+                                <option value="income">Income</option>
+                                <option value="expense">Expense</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <select id="filterCategory" onchange="filterTransactions()">
+                                <option value="all">All Categories</option>
+                                <option value="food">Food & Dining</option>
+                                <option value="transport">Transportation</option>
+                                <option value="shopping">Shopping</option>
+                                <option value="entertainment">Entertainment</option>
+                                <option value="bills">Bills & Utilities</option>
+                                <option value="health">Healthcare</option>
+                                <option value="education">Education</option>
+                                <option value="salary">Salary</option>
+                                <option value="business">Business Income</option>
+                                <option value="freelance">Freelance</option>
+                                <option value="investment">Investment Returns</option>
+                                <option value="rental">Rental Income</option>
+                                <option value="gift">Gift Received</option>
+                                <option value="refund">Refund</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <input type="text" id="searchTransaction" placeholder="Search..." oninput="filterTransactions()">
+                        </div>
+                    </div>
+                    <div class="transaction-list" id="transactionList"></div>
+                    <div class="export-section">
+                        <button class="btn btn-secondary" onclick="exportToCSV()">📥 Export CSV</button>
+                        <button class="btn btn-secondary" onclick="exportToJSON()">📥 Export JSON</button>
+                        <button class="btn btn-secondary" onclick="importData()">📤 Import Data</button>
+                    </div>
+                </div>
+
+                <div id="analyticsTab" style="display: none;">
+                    <div class="chart-container">
+                        <canvas id="expenseChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+
+                <div id="budgetTab" style="display: none;">
+                    <div class="form-group">
+                        <label>Set Monthly Budget</label>
+                        <input type="number" id="monthlyBudget" placeholder="Enter your monthly budget" step="0.01">
+                        <button class="btn btn-primary" style="margin-top: 10px; width: 100%;" onclick="setBudget()">Set Budget</button>
+                    </div>
+                    <div class="budget-section" id="budgetDisplay"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Built with ❤️ by Naksh | ExpenseFlow v1.0</p>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Transaction</h2>
+            <form id="editForm">
+                <input type="hidden" id="editId">
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="editType" required>
+                        <option value="expense">Expense</option>
+                        <option value="income">Income</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="editDescription" required>
+                </div>
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input type="number" id="editAmount" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="editCategory" required>
+                        <option value="food">🍔 Food & Dining</option>
+                        <option value="transport">🚗 Transportation</option>
+                        <option value="shopping">🛍️ Shopping</option>
+                        <option value="entertainment">🎮 Entertainment</option>
+                        <option value="bills">📄 Bills & Utilities</option>
+                        <option value="health">💊 Healthcare</option>
+                        <option value="education">📚 Education</option>
+                        <option value="salary">💼 Salary</option>
+                        <option value="freelance">💻 Freelance</option>
+                        <option value="investment">📈 Investment</option>
+                        <option value="other">📦 Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="editDate" required>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <input type="file" id="importFile" style="display: none;" accept=".json,.csv">
+    
+    <script src="app.js"></script>
+</body>
+</html>
